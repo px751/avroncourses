@@ -1,38 +1,16 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { ArchivedList, Rayon } from '../models';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  Firestore, collection, collectionData, query, orderBy,
+  doc, addDoc, deleteDoc,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
+import { ArchivedList, ListItem, Rayon } from '../models';
 import { RAYON_META } from '../utils/rayon';
 
 function d(year: number, month: number, day: number) {
   return new Date(year, month - 1, day).getTime();
 }
-
-const MOCK_LISTS: ArchivedList[] = [
-  { id: 'h1', date: d(2026, 6, 14), participants: ['antoine', 'marie'],
-    items: Array(18).fill(null).map((_, i) => ({
-      id: `h1-${i}`, name: '', rayon: 'epicerie' as const,
-      checked: true, addedBy: 'antoine', addedAt: 0,
-    })) },
-  { id: 'h2', date: d(2026, 6,  7), participants: ['marie'],
-    items: Array(22).fill(null).map((_, i) => ({
-      id: `h2-${i}`, name: '', rayon: 'frais' as const,
-      checked: true, addedBy: 'marie', addedAt: 0,
-    })) },
-  { id: 'h3', date: d(2026, 6,  1), participants: ['antoine'],
-    items: Array(15).fill(null).map((_, i) => ({
-      id: `h3-${i}`, name: '', rayon: 'fruits' as const,
-      checked: true, addedBy: 'antoine', addedAt: 0,
-    })) },
-  { id: 'h4', date: d(2026, 5, 24), participants: ['antoine', 'marie'],
-    items: Array(19).fill(null).map((_, i) => ({
-      id: `h4-${i}`, name: '', rayon: 'epicerie' as const,
-      checked: true, addedBy: 'marie', addedAt: 0,
-    })) },
-  { id: 'h5', date: d(2026, 5, 16), participants: ['marie'],
-    items: Array(12).fill(null).map((_, i) => ({
-      id: `h5-${i}`, name: '', rayon: 'frais' as const,
-      checked: true, addedBy: 'marie', addedAt: 0,
-    })) },
-];
 
 export interface MonthlyPurchase { month: string; count: number; }
 
@@ -173,17 +151,31 @@ const MOCK_PRODUCTS: ProductStat[] = [
 
 @Injectable({ providedIn: 'root' })
 export class HistoryService {
-  readonly lists    = signal<ArchivedList[]>(MOCK_LISTS);
+  private fs = inject(Firestore);
+  private archivesRef = collection(this.fs, 'archives');
+
+  readonly lists: Signal<ArchivedList[]>;
   readonly products = signal<ProductStat[]>(MOCK_PRODUCTS);
   readonly productSearch = signal('');
 
-  readonly filteredProducts = computed(() => {
-    const q = this.productSearch().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
-    if (!q) return this.products();
-    return this.products().filter(p =>
-      p.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(q)
-    );
-  });
+  readonly filteredProducts: Signal<ProductStat[]>;
+
+  constructor() {
+    const lists$ = collectionData(
+      query(this.archivesRef, orderBy('date', 'desc')),
+      { idField: 'id' },
+    ) as Observable<ArchivedList[]>;
+
+    this.lists = toSignal(lists$, { initialValue: [] });
+
+    this.filteredProducts = computed(() => {
+      const q = this.productSearch().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+      if (!q) return this.products();
+      return this.products().filter(p =>
+        p.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(q)
+      );
+    });
+  }
 
   getProductById(id: string): ProductStat | undefined {
     return this.products().find(p => p.id === id);
@@ -203,17 +195,15 @@ export class HistoryService {
     ));
   }
 
-  archiveList(items: import('../models').ListItem[], participants: string[]) {
-    const archived: import('../models').ArchivedList = {
-      id: 'a' + Date.now(),
+  archiveList(items: ListItem[], participants: string[]) {
+    addDoc(this.archivesRef, {
       date: Date.now(),
       items,
       participants,
-    };
-    this.lists.update(l => [archived, ...l]);
+    });
   }
 
   deleteList(id: string) {
-    this.lists.update(l => l.filter(x => x.id !== id));
+    deleteDoc(doc(this.fs, 'archives', id));
   }
 }

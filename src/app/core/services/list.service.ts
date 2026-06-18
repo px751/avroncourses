@@ -1,84 +1,78 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  Firestore, collection, collectionData, query, orderBy,
+  doc, addDoc, updateDoc, deleteDoc,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 import { ListItem, Rayon, ListViewMode } from '../models';
-
-const MOCK_ITEMS: ListItem[] = [
-  { id: '1', name: 'Bananes',        rayon: 'fruits',   checked: false, addedBy: 'antoine', addedAt: Date.now() },
-  { id: '2', name: 'Lait demi-écrémé', rayon: 'frais',  checked: false, addedBy: 'marie',   addedAt: Date.now() },
-  { id: '3', name: 'Pain de mie',    rayon: 'epicerie', checked: true,  addedBy: 'antoine', addedAt: Date.now() },
-  { id: '4', name: 'Œufs ×6',        rayon: 'frais',   checked: false, addedBy: 'marie',   addedAt: Date.now() },
-  { id: '5', name: 'Yaourts nature', rayon: 'frais',    checked: true,  addedBy: 'marie',   addedAt: Date.now() },
-  { id: '6', name: 'Café moulu',     rayon: 'epicerie', checked: false, addedBy: 'antoine', addedAt: Date.now() },
-  { id: '7', name: 'Sopalin',        rayon: 'inconnue', checked: false, addedBy: 'antoine', addedAt: Date.now() },
-];
 
 const RAYON_ORDER: Rayon[] = ['fruits', 'frais', 'epicerie', 'inconnue'];
 
 @Injectable({ providedIn: 'root' })
 export class ListService {
-  readonly items    = signal<ListItem[]>(MOCK_ITEMS);
+  private fs = inject(Firestore);
+  private listRef = collection(this.fs, 'lists');
+
+  readonly items: Signal<ListItem[]>;
   readonly viewMode = signal<ListViewMode>('flat');
 
-  readonly uncheckedCount = computed(() => this.items().filter(i => !i.checked).length);
-  readonly checkedCount   = computed(() => this.items().filter(i =>  i.checked).length);
-  readonly totalCount     = computed(() => this.items().length);
-  readonly progress       = computed(() =>
-    this.totalCount() === 0 ? 0 : this.checkedCount() / this.totalCount()
-  );
+  readonly uncheckedCount: Signal<number>;
+  readonly checkedCount: Signal<number>;
+  readonly totalCount: Signal<number>;
+  readonly progress: Signal<number>;
+  readonly byRayon: Signal<{ rayon: Rayon; items: ListItem[] }[]>;
 
-  readonly byRayon = computed(() => {
-    const grouped = new Map<Rayon, ListItem[]>();
-    for (const r of RAYON_ORDER) grouped.set(r, []);
-    for (const item of this.items()) {
-      grouped.get(item.rayon)!.push(item);
-    }
-    return [...grouped.entries()]
-      .filter(([, items]) => items.length > 0)
-      .map(([rayon, items]) => ({ rayon, items }));
-  });
+  constructor() {
+    const items$ = collectionData(
+      query(this.listRef, orderBy('addedAt', 'asc')),
+      { idField: 'id' },
+    ) as Observable<ListItem[]>;
+
+    this.items = toSignal(items$, { initialValue: [] });
+
+    this.uncheckedCount = computed(() => this.items().filter(i => !i.checked).length);
+    this.checkedCount   = computed(() => this.items().filter(i =>  i.checked).length);
+    this.totalCount     = computed(() => this.items().length);
+    this.progress       = computed(() =>
+      this.totalCount() === 0 ? 0 : this.checkedCount() / this.totalCount()
+    );
+
+    this.byRayon = computed(() => {
+      const grouped = new Map<Rayon, ListItem[]>();
+      for (const r of RAYON_ORDER) grouped.set(r, []);
+      for (const item of this.items()) grouped.get(item.rayon)!.push(item);
+      return [...grouped.entries()]
+        .filter(([, its]) => its.length > 0)
+        .map(([rayon, its]) => ({ rayon, items: its }));
+    });
+  }
 
   toggle(id: string) {
-    this.items.update(list =>
-      list.map(i => i.id === id ? { ...i, checked: !i.checked } : i)
-    );
+    const item = this.items().find(i => i.id === id);
+    if (!item) return;
+    updateDoc(doc(this.fs, 'lists', id), { checked: !item.checked });
   }
 
   add(name: string, rayon: Rayon, addedBy: string) {
-    const item: ListItem = {
-      id: crypto.randomUUID(),
-      name, rayon, checked: false, addedBy,
-      addedAt: Date.now(),
-    };
-    this.items.update(list => [...list, item]);
+    addDoc(this.listRef, { name, rayon, checked: false, addedBy, addedAt: Date.now() });
   }
 
   remove(id: string) {
-    this.items.update(list => list.filter(i => i.id !== id));
+    deleteDoc(doc(this.fs, 'lists', id));
   }
 
   setRayon(id: string, rayon: Rayon) {
-    this.items.update(list =>
-      list.map(i => i.id === id ? { ...i, rayon } : i)
-    );
+    updateDoc(doc(this.fs, 'lists', id), { rayon });
   }
 
-  cycleRayon(id: string) {
-    const item = this.items().find(i => i.id === id);
-    if (!item) return;
-    const idx = RAYON_ORDER.indexOf(item.rayon);
-    const next = RAYON_ORDER[(idx + 1) % RAYON_ORDER.length];
-    this.setRayon(id, next);
+  archiveKeepUnchecked() {
+    this.items().filter(i => i.checked)
+      .forEach(i => deleteDoc(doc(this.fs, 'lists', i.id)));
   }
 
-  archiveKeepUnchecked(): ListItem[] {
-    const checked = this.items().filter(i => i.checked);
-    this.items.update(list => list.filter(i => !i.checked));
-    return checked;
-  }
-
-  archiveAll(): ListItem[] {
-    const all = this.items();
-    this.items.set([]);
-    return all.filter(i => i.checked);
+  archiveAll() {
+    this.items().forEach(i => deleteDoc(doc(this.fs, 'lists', i.id)));
   }
 
   setViewMode(mode: ListViewMode) {

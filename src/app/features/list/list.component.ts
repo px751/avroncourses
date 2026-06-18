@@ -163,17 +163,19 @@ export class ListComponent {
   archiveCancel()  { this.showArchiveConfirm.set(false); }
 
   archiveKeepUnchecked() {
-    const all = this.list.items();
+    const all  = this.list.items();
     const participants = [...new Set(all.map(i => i.addedBy))];
-    const checked = this.list.archiveKeepUnchecked();
+    const checked = all.filter(i => i.checked);
+    this.list.archiveKeepUnchecked();
     this.history.archiveList(checked, participants);
     this.showArchiveConfirm.set(false);
   }
 
   archiveDeleteUnchecked() {
-    const all = this.list.items();
+    const all  = this.list.items();
     const participants = [...new Set(all.map(i => i.addedBy))];
-    const checked = this.list.archiveAll();
+    const checked = all.filter(i => i.checked);
+    this.list.archiveAll();
     this.history.archiveList(checked, participants);
     this.showArchiveConfirm.set(false);
   }
