@@ -1,0 +1,136 @@
+<!-- Safe-area top padding for iPhone notch -->
+<div class="min-h-screen bg-bg-app flex flex-col" style="padding-top: env(safe-area-inset-top)">
+
+  <!-- ── STEP 1 : Sélection du profil ── -->
+  @if (step() === 'select') {
+    <div class="flex-1 flex flex-col justify-center px-[26px] pb-10">
+
+      <!-- Logo + titre -->
+      <div class="text-center mb-10">
+        <div class="w-[62px] h-[62px] rounded-[20px] bg-ac mx-auto mb-[18px] flex items-center justify-center"
+             style="box-shadow: 0 14px 30px -10px rgba(26,143,92,0.6)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3h2l.4 2M7 13h10l3.5-8H6.5"/>
+            <circle cx="9" cy="20" r="1.4"/>
+            <circle cx="17" cy="20" r="1.4"/>
+          </svg>
+        </div>
+        <div class="font-display text-[32px] font-extrabold text-text-primary tracking-[-0.02em] leading-none">
+          AvronCourses
+        </div>
+        <div class="text-[16px] text-text-secondary mt-2">Qui se connecte&nbsp;?</div>
+      </div>
+
+      <!-- Cartes profils -->
+      <div class="flex flex-col gap-[14px]">
+        @for (member of memberList; track member.id) {
+          @let color = member.colorIndex | memberColor;
+          <button
+            (click)="selectMember(member)"
+            class="flex items-center gap-4 bg-white rounded-card px-[18px] py-4 text-left w-full"
+            style="box-shadow: var(--shadow-card)">
+            <div class="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[20px] font-bold flex-none"
+                 [style.background]="color.bg"
+                 [style.color]="color.text">
+              {{ member.avatarLetter }}
+            </div>
+            <span class="flex-1 text-[19px] font-semibold text-text-primary">{{ member.name }}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9BC9F"
+                 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </button>
+        }
+
+        <!-- Ajouter un utilisateur (non implémenté) -->
+        <div class="flex items-center gap-[14px] border-[1.5px] border-dashed border-border-dashed rounded-card px-[18px] py-4 opacity-50">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-none"
+               style="background:#EFEADC">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#A79C8A">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+            </svg>
+          </div>
+          <span class="text-[16px] font-medium text-text-secondary">Ajouter un utilisateur</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── STEP 2 : Date de naissance ── -->
+  @if (step() === 'dob') {
+    <div class="flex-1 flex flex-col">
+
+      <!-- Header retour -->
+      <div class="flex items-center gap-[11px] px-[22px] pt-[6px] pb-[2px]">
+        <button
+          (click)="back()"
+          class="w-[38px] h-[38px] rounded-add bg-white flex items-center justify-center flex-none"
+          style="box-shadow: 0 2px 8px -3px rgba(33,28,22,0.2)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211C16"
+               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        @if (selectedMember(); as m) {
+          @let color = m.colorIndex | memberColor;
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-bold flex-none"
+               [style.background]="color.bg"
+               [style.color]="color.text">
+            {{ m.avatarLetter }}
+          </div>
+          <span class="text-[17px] font-semibold text-text-primary">{{ m.name }}</span>
+        }
+      </div>
+
+      <!-- Titre -->
+      <div class="px-[26px] pt-[22px] pb-[4px]">
+        <div class="font-display text-[26px] font-extrabold text-text-primary tracking-[-0.01em] leading-tight">
+          Ta date de naissance
+        </div>
+        <div class="text-[15px] text-text-secondary mt-[6px]">Pour confirmer que c'est bien toi.</div>
+      </div>
+
+      <!-- Bandeau date sélectionnée -->
+      <div class="mx-[26px] mt-[18px] rounded-input px-4 py-4 text-center text-white font-display text-[22px] font-bold bg-ac"
+           style="box-shadow: var(--shadow-btn-accent)">
+        {{ formattedDob() }}
+      </div>
+
+      <!-- Message d'erreur -->
+      @if (authError()) {
+        <div class="mx-[26px] mt-3 text-center text-[14px] font-medium text-red">
+          Date incorrecte, réessaie.
+        </div>
+      }
+
+      <!-- Wheel picker -->
+      <div class="flex-1 flex items-center mx-[22px] mt-[22px] relative">
+        <div class="absolute left-0 right-0 h-[46px] rounded-[12px] bg-toggle-bg pointer-events-none z-10"
+             style="top: 50%; transform: translateY(-50%)"></div>
+        <div class="flex w-full relative z-20">
+          <div class="flex-1">
+            <app-wheel-col [items]="days" [(value)]="dobDay" />
+          </div>
+          <div class="flex-[1.4]">
+            <app-wheel-col [items]="months" [(value)]="dobMonth" />
+          </div>
+          <div class="flex-1">
+            <app-wheel-col [items]="years" [(value)]="dobYear" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Se connecter -->
+      <div class="px-[22px] pt-[14px]" style="padding-bottom: calc(30px + env(safe-area-inset-bottom))">
+        <button
+          (click)="login()"
+          class="w-full bg-ac text-white rounded-btn py-4 text-[17px] font-bold"
+          style="box-shadow: var(--shadow-btn-accent)">
+          Se connecter
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

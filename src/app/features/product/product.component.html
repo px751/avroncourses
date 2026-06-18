@@ -1,0 +1,251 @@
+@if (product(); as p) {
+  <div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top)">
+
+    <!-- ── Header ── -->
+    <div class="flex-none px-[22px] pt-2 pb-1">
+      <div class="flex items-center gap-3 mb-3">
+        <button (click)="back()"
+          class="w-[38px] h-[38px] rounded-add bg-white flex items-center justify-center flex-none"
+          style="box-shadow: 0 2px 8px -3px rgba(33,28,22,0.2)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211C16"
+               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-[2px]">
+        <div class="font-display text-[27px] font-extrabold text-text-primary tracking-[-0.01em] leading-[1.05]">
+          {{ p.name }}
+        </div>
+
+        @if (rayonPill(); as pill) {
+          <button (click)="openRayonPicker()"
+                class="inline-flex items-center gap-[7px] rounded-full text-[12px] font-semibold mt-[10px]"
+                style="padding: 5px 9px 5px 12px; border-width: 1.5px; border-style: solid; touch-action: manipulation; cursor: pointer; -webkit-tap-highlight-color: transparent"
+                [style.color]="pill.text"
+                [style.background]="pill.bg"
+                [style.border-color]="pill.border">
+            <span class="w-[6px] h-[6px] rounded-full flex-none" [style.background]="pill.dot"></span>
+            Rayon · {{ pill.label }}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 [attr.stroke]="pill.text"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── Contenu scrollable ── -->
+    <div class="flex-1 overflow-auto px-[18px] pt-4 pb-4 flex flex-col gap-5">
+
+      <!-- Carte estimation (état avec données) -->
+      @if (hasData()) {
+        <div class="rounded-[22px] p-5 text-white" style="background: #1A8F5C; box-shadow: 0 12px 28px -12px rgba(26,143,92,0.6)">
+          <div class="text-[13px] font-semibold tracking-[0.02em]" style="opacity: 0.85">
+            PROCHAIN ACHAT ESTIMÉ
+          </div>
+          <div class="font-display font-extrabold text-[40px] leading-none mt-[6px]">
+            ~ {{ p.estimatedDays }} jours
+          </div>
+          <div class="text-[13.5px] mt-2" style="opacity: 0.9">
+            Acheté en moyenne toutes les {{ avgLabel() }}
+          </div>
+        </div>
+      }
+
+      <!-- Graphique fréquence d'achat -->
+      <div>
+        <div class="flex items-center justify-between mb-[14px]">
+          <span class="text-[15px] font-bold text-text-primary">Fréquence d'achat</span>
+          <span class="text-[11.5px] font-semibold text-text-secondary">achats / mois</span>
+        </div>
+
+        @if (hasData()) {
+          <!-- Barres -->
+          <div class="flex gap-2">
+            <!-- Axe Y -->
+            <div class="flex flex-col justify-between w-[14px] text-[10px] font-semibold text-text-secondary text-right leading-none"
+                 style="height: 104px">
+              <span>{{ chartMax() }}</span>
+              <span>{{ (chartMax() * 0.75) | number:'1.0-0' }}</span>
+              <span>{{ (chartMax() * 0.5) | number:'1.0-0' }}</span>
+              <span>{{ (chartMax() * 0.25) | number:'1.0-0' }}</span>
+              <span>0</span>
+            </div>
+            <!-- Zone chart -->
+            <div class="relative flex-1" style="height: 104px">
+              <!-- Grid lines -->
+              <div class="absolute left-0 right-0 top-0 h-px" style="background: #ECE3D2"></div>
+              <div class="absolute left-0 right-0 h-px" style="background: #ECE3D2; top: 25%"></div>
+              <div class="absolute left-0 right-0 h-px" style="background: #ECE3D2; top: 50%"></div>
+              <div class="absolute left-0 right-0 h-px" style="background: #ECE3D2; top: 75%"></div>
+              <div class="absolute left-0 right-0 bottom-0 h-px" style="background: #D8CDB6; height: 1.5px"></div>
+              <!-- Barres -->
+              <div class="absolute inset-0 flex items-end gap-[9px]">
+                @for (month of p.monthlyPurchases; track month.month; let i = $index) {
+                  <div class="flex-1 rounded-t-[6px] transition-all"
+                       [style.height]="barHeight(month)"
+                       [style.background]="isRecentMonth(i) ? '#1A8F5C' : '#E3D9C6'">
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          <!-- Labels mois -->
+          <div class="flex gap-[9px] mt-[7px]" style="margin-left: 22px">
+            @for (month of p.monthlyPurchases; track month.month) {
+              <span class="flex-1 text-center text-[11px] font-semibold text-text-secondary">
+                {{ month.month }}
+              </span>
+            }
+          </div>
+        } @else {
+          <!-- Placeholder sans données -->
+          <div class="relative flex flex-col items-center justify-center gap-2 px-6 text-center rounded-[16px]"
+               style="height: 118px; border: 1.5px dashed #DCD2BD; background: #FCFAF4">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9BC9F"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/><path d="M7 15l3-3 3 2 4-5"/>
+            </svg>
+            <span class="text-[13px] text-text-secondary leading-[1.35]">
+              Le graphique apparaîtra après quelques achats sur plus de 2 semaines.
+            </span>
+          </div>
+          <div class="flex items-start gap-[7px] mt-[10px]">
+            <svg class="flex-none mt-[1px]" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="#A79C8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+            </svg>
+            <span class="text-[11.5px] text-text-secondary leading-[1.45]">
+              Estimation possible à partir de <b class="text-[#6E6657]">2 semaines d'historique</b>
+              et <b class="text-[#6E6657]">2 achats</b>. Les achats trop irréguliers (intervalle
+              <b class="text-[#6E6657]">&gt; 1 an</b>) sont traités comme ponctuels — aucune échéance affichée.
+            </span>
+          </div>
+        }
+      </div>
+
+      <!-- Tableau d'informations -->
+      <div class="bg-white rounded-[18px] overflow-hidden" style="box-shadow: 0 6px 20px -10px rgba(33,28,22,0.2)">
+        @if (hasData()) {
+          @if (p.lastAddedAt) {
+            @let addedMember = members.getById(p.lastAddedBy);
+            @let addedColor = addedMember ? (addedMember.colorIndex | memberColor) : null;
+            <div class="flex items-center justify-between px-4 py-[14px] border-b"
+                 style="border-color: #F1EADC">
+              <span class="text-[14.5px] text-text-secondary">Dernier ajout</span>
+              <span class="text-[14.5px] font-semibold text-text-primary">
+                {{ p.lastAddedAt | frenchDate }}
+                @if (addedMember && addedColor) {
+                  · <span [style.color]="addedColor.text">{{ addedMember.name }}</span>
+                }
+              </span>
+            </div>
+          }
+          @if (p.lastCheckedAt && p.lastCheckedBy) {
+            @let checkedMember = members.getById(p.lastCheckedBy);
+            @let checkedColor = checkedMember ? (checkedMember.colorIndex | memberColor) : null;
+            <div class="flex items-center justify-between px-4 py-[14px] border-b"
+                 style="border-color: #F1EADC">
+              <span class="text-[14.5px] text-text-secondary">Dernière fois coché</span>
+              <span class="text-[14.5px] font-semibold text-text-primary">
+                {{ p.lastCheckedAt | frenchDate }}
+                @if (checkedMember && checkedColor) {
+                  · <span [style.color]="checkedColor.text">{{ checkedMember.name }}</span>
+                }
+              </span>
+            </div>
+          }
+          @if (p.prevPurchaseAt && p.prevPurchaseBy) {
+            @let prevMember = members.getById(p.prevPurchaseBy);
+            @let prevColor = prevMember ? (prevMember.colorIndex | memberColor) : null;
+            <div class="flex items-center justify-between px-4 py-[14px]">
+              <span class="text-[14.5px] text-text-secondary">Achat précédent</span>
+              <span class="text-[14.5px] font-semibold text-text-primary">
+                {{ p.prevPurchaseAt | frenchDate }}
+                @if (prevMember && prevColor) {
+                  · <span [style.color]="prevColor.text">{{ prevMember.name }}</span>
+                }
+              </span>
+            </div>
+          }
+        } @else {
+          @if (p.lastAddedAt) {
+            @let addedMember2 = members.getById(p.lastAddedBy);
+            @let addedColor2 = addedMember2 ? (addedMember2.colorIndex | memberColor) : null;
+            <div class="flex items-center justify-between px-4 py-[14px] border-b"
+                 style="border-color: #F1EADC">
+              <span class="text-[14.5px] text-text-secondary">Ajouté à la liste</span>
+              <span class="text-[14.5px] font-semibold text-text-primary">
+                {{ p.lastAddedAt | frenchDate }}
+                @if (addedMember2 && addedColor2) {
+                  · <span [style.color]="addedColor2.text">{{ addedMember2.name }}</span>
+                }
+              </span>
+            </div>
+          }
+          <div class="flex items-center justify-between px-4 py-[14px]">
+            <span class="text-[14.5px] text-text-secondary">Achats enregistrés</span>
+            <span class="text-[14.5px] font-semibold text-text-primary">
+              {{ p.purchaseCount === 1 ? '1 seul' : p.purchaseCount + ' achats' }}
+            </span>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- ── Footer bouton ── -->
+    <div class="flex-none px-[18px] bg-bg-app border-t"
+         style="border-color: #ECE3D2; padding-top: 12px; padding-bottom: calc(30px + env(safe-area-inset-bottom))">
+      <button (click)="addToList()"
+        class="w-full flex items-center justify-center gap-[9px] rounded-[16px] text-white font-bold text-[16.5px] py-4"
+        style="background: #1A8F5C; box-shadow: 0 10px 24px -10px rgba(26,143,92,0.55)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+        </svg>
+        Ajouter à ma liste
+      </button>
+    </div>
+
+  </div>
+} @else {
+  <div class="flex flex-col h-screen items-center justify-center bg-bg-app gap-3">
+    <span class="text-text-secondary text-[15px]">Produit introuvable</span>
+    <button (click)="back()" class="text-ac font-semibold text-[14px]">← Retour</button>
+  </div>
+}
+
+<!-- ── Sheet sélecteur de rayon ── -->
+@if (showRayonPicker()) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center"
+       style="background: rgba(33,28,22,0.5)"
+       (click)="closeRayonPicker()">
+    <div class="w-full max-w-[390px] bg-bg-app rounded-t-[28px] px-5 pt-4"
+         style="padding-bottom: calc(30px + env(safe-area-inset-bottom))"
+         (click)="$event.stopPropagation()">
+      <div class="w-[42px] h-[5px] rounded-full mx-auto mb-4" style="background: #D8CDB6"></div>
+      <div class="font-display font-extrabold text-[20px] text-text-primary mb-4">Choisir un rayon</div>
+
+      <div class="flex flex-col gap-[10px]">
+        @for (opt of rayonOptions; track opt.rayon) {
+          <button (click)="selectRayon(opt.rayon)"
+            class="flex items-center gap-3 bg-white rounded-[16px] px-4 py-[14px]"
+            style="box-shadow: 0 4px 14px -8px rgba(33,28,22,0.18)">
+            <span class="w-[8px] h-[8px] rounded-full flex-none" [style.background]="opt.meta.dot"></span>
+            <span class="flex-1 text-left text-[16px] font-medium text-text-primary">{{ opt.meta.label }}</span>
+            @if (product()?.rayon === opt.rayon) {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A8F5C"
+                   stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

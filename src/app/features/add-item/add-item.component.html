@@ -1,0 +1,101 @@
+<div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top)">
+
+  <!-- ── Header ── -->
+  <div class="flex-none flex items-center justify-between px-[22px] pt-2 pb-1">
+    <span class="font-display text-[22px] font-extrabold text-text-primary tracking-[-0.01em]">
+      Ajouter
+    </span>
+    <button (click)="cancel()" class="text-[15px] font-semibold text-ac">
+      Annuler
+    </button>
+  </div>
+
+  <!-- ── Contenu scrollable ── -->
+  <div class="flex-1 overflow-auto px-[18px] pt-[14px] pb-4">
+
+    <!-- Champ de saisie -->
+    <div class="flex items-center h-[54px] bg-white rounded-input px-4 mb-[14px] transition-all"
+         style="border: 2px solid var(--color-ac); box-shadow: 0 0 0 4px rgba(26,143,92,0.14)">
+      <input
+        #input
+        class="flex-1 text-[16.5px] font-medium text-text-primary bg-transparent outline-none caret-ac placeholder:text-text-tertiary"
+        placeholder="Rechercher un article…"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)" />
+    </div>
+
+    <!-- Suggestions catalogue -->
+    @if (suggestions().length > 0) {
+      <div class="text-[12.5px] font-bold tracking-[0.04em] uppercase text-text-tertiary px-1 mb-2">
+        Dans le catalogue
+      </div>
+      <div class="bg-white rounded-[18px] overflow-hidden mb-[18px]"
+           style="box-shadow: 0 6px 20px -10px rgba(33,28,22,0.2)">
+        @for (product of suggestions(); track product.id; let last = $last) {
+          <button
+            (click)="selectSuggestion(product)"
+            class="flex items-center gap-3 px-4 py-[13px] w-full text-left"
+            [class.border-b]="!last"
+            style="border-color: #F1EADC">
+            <!-- Icône rayon -->
+            <span class="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center flex-none"
+                  [style.background]="bgColor(product.rayon)">
+              <span class="w-2 h-2 rounded-full" [style.background]="dotColor(product.rayon)"></span>
+            </span>
+            <!-- Nom avec highlight -->
+            <span class="flex-1 text-[16px] text-text-primary">
+              {{ highlight(product.name).before }}<b class="text-ac">{{ highlight(product.name).match }}</b>{{ highlight(product.name).after }}
+            </span>
+            <!-- Label rayon -->
+            <span class="text-[12px] text-text-secondary flex-none">{{ rayonLabel(product.rayon) }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Bloc "nouvel article" -->
+    @if (showNewBlock()) {
+      <div class="bg-white rounded-[18px] p-4"
+           style="border: 1.5px dashed #DCD2BD">
+
+        <!-- Titre -->
+        <div class="flex items-center gap-3">
+          <span class="w-[34px] h-[34px] rounded-[11px] bg-ac flex items-center justify-center flex-none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+            </svg>
+          </span>
+          <span class="flex-1 text-[15.5px] font-medium text-text-primary">
+            Ajouter « {{ query() }} » comme nouvel article
+          </span>
+        </div>
+
+        <!-- Chips rayon -->
+        <div class="text-[13px] text-text-secondary mt-3 mb-[9px]">
+          Ranger dans un rayon
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          @for (r of rayons; track r.value) {
+            <button
+              (click)="selectedRayon.set(r.value)"
+              class="px-[14px] py-[7px] rounded-full text-[13.5px] font-semibold transition-all"
+              [style.background]="selectedRayon() === r.value ? 'var(--color-ac)' : 'transparent'"
+              [style.color]="selectedRayon() === r.value ? '#fff' : '#6E6657'"
+              [style.border]="selectedRayon() === r.value ? 'none' : '1.5px solid #DCD2BD'">
+              {{ r.label }}
+            </button>
+          }
+        </div>
+
+        <!-- CTA ajouter -->
+        <button
+          (click)="addNewItem()"
+          class="w-full bg-ac text-white rounded-btn py-[14px] text-[15.5px] font-bold"
+          style="box-shadow: var(--shadow-btn-accent)">
+          Ajouter à la liste
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

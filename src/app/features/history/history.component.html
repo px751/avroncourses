@@ -1,0 +1,152 @@
+<div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top)">
+
+  <!-- ── Header ── -->
+  <div class="flex-none px-[22px] pt-2 pb-1">
+    <div class="flex items-center gap-3 mb-[14px]">
+      <button (click)="back()"
+        class="w-[38px] h-[38px] rounded-add bg-white flex items-center justify-center flex-none"
+        style="box-shadow: 0 2px 8px -3px rgba(33,28,22,0.2)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211C16"
+             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <span class="font-display text-[22px] font-extrabold text-text-primary tracking-[-0.01em]">
+        Historique
+      </span>
+    </div>
+
+    <!-- Toggle Listes / Produits -->
+    <div class="flex rounded-[13px] p-1" style="background:#F1E9D8">
+      <button (click)="tab.set('lists')"
+        class="flex-1 text-center py-[9px] rounded-[10px] text-[14px] font-bold transition-all"
+        [class]="tab() === 'lists' ? 'bg-ac text-white' : 'text-text-secondary font-semibold'"
+        [style.box-shadow]="tab() === 'lists' ? 'var(--shadow-toggle-seg)' : 'none'">
+        Listes
+      </button>
+      <button (click)="tab.set('products')"
+        class="flex-1 text-center py-[9px] rounded-[10px] text-[14px] font-bold transition-all"
+        [class]="tab() === 'products' ? 'bg-ac text-white' : 'text-text-secondary font-semibold'"
+        [style.box-shadow]="tab() === 'products' ? 'var(--shadow-toggle-seg)' : 'none'">
+        Produits
+      </button>
+    </div>
+
+    <!-- Barre de recherche (onglet Produits) -->
+    @if (tab() === 'products') {
+      <div class="flex items-center gap-3 mt-3 h-[48px] bg-white rounded-[14px] px-[14px]"
+           style="box-shadow: 0 4px 14px -8px rgba(33,28,22,0.18)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A79C8A"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/>
+        </svg>
+        <input class="flex-1 text-[15px] font-medium text-text-primary bg-transparent outline-none placeholder:text-text-tertiary"
+               placeholder="Rechercher un produit…"
+               [ngModel]="history.productSearch()"
+               (ngModelChange)="history.productSearch.set($event)" />
+      </div>
+    }
+  </div>
+
+  <!-- ── Contenu ── -->
+  <div class="flex-1 overflow-auto px-4 pt-[16px] pb-4 flex flex-col gap-3">
+
+    <!-- ─ Onglet Listes ─ -->
+    @if (tab() === 'lists') {
+      @for (list of history.lists(); track list.id) {
+        <div class="relative rounded-[18px] overflow-hidden"
+             style="box-shadow: 0 6px 20px -10px rgba(33,28,22,0.2)">
+
+          <!-- Panneau rouge derrière -->
+          <div class="absolute inset-y-0 right-0 w-[84px] bg-red flex flex-col items-center justify-center gap-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            <button (click)="deleteList(list.id)"
+                    class="text-white text-[12px] font-semibold">
+              Supprimer
+            </button>
+          </div>
+
+          <!-- Carte principale (swipeable) -->
+          <div class="relative bg-white flex items-center gap-[14px] px-4 py-[15px] transition-transform duration-150 touch-pan-y"
+               [style.transform]="'translateX(' + cardOffset(list.id) + 'px)'"
+               (pointerdown)="onPointerDown($event, list.id)"
+               (pointermove)="onPointerMove($event, list.id)"
+               (pointerup)="onPointerUp(list.id)"
+               (pointercancel)="onPointerUp(list.id)">
+
+            <!-- Indicateur swipe (chevrons rouges, visible quand partiellement swipé) -->
+            @if (swipedId() === list.id && swipeX() < -8) {
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D2563D"
+                     stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 18l-6-6 6-6"/><path d="M19 18l-6-6 6-6"/>
+                </svg>
+              </div>
+            }
+
+            <div class="flex-1" [class.pl-6]="swipedId() === list.id && swipeX() < -8">
+              <div class="text-[17px] font-semibold text-text-primary">
+                {{ list.date | frenchDate }}
+              </div>
+              <div class="text-[13.5px] text-text-secondary mt-[3px]">
+                {{ list.items.length }} articles · terminée
+              </div>
+            </div>
+
+            <!-- Avatars participants -->
+            <div class="flex items-center flex-none">
+              @for (pid of list.participants; track pid; let i = $index) {
+                @let m = memberFor(pid);
+                @if (m) {
+                  @let color = m.colorIndex | memberColor;
+                  <div class="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[12px] font-bold"
+                       [style.margin-left]="i > 0 ? '-10px' : '0'"
+                       [style.background]="color.bg"
+                       [style.color]="color.text"
+                       style="border: 2.5px solid #fff">
+                    {{ m.avatarLetter }}
+                  </div>
+                }
+              }
+            </div>
+
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9BC9F"
+                 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" class="flex-none">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ─ Onglet Produits ─ -->
+    @if (tab() === 'products') {
+      @for (product of history.filteredProducts(); track product.id) {
+        <a [routerLink]="['/product', product.id]"
+           class="bg-white rounded-[16px] flex items-center gap-3 px-[15px] py-[13px]"
+           style="box-shadow: 0 5px 18px -10px rgba(33,28,22,0.2)">
+          <span class="w-2 h-2 rounded-full flex-none" [style.background]="product.rayonDot"></span>
+          <div class="flex-1 min-w-0">
+            <div class="text-[16px] font-medium text-text-primary">{{ product.name }}</div>
+            <div class="text-[12.5px] text-text-secondary mt-[2px]">
+              {{ product.rayonLabel }} · acheté {{ product.purchaseCount }}×
+            </div>
+          </div>
+          <span class="text-[12.5px] font-bold text-ac rounded-full px-[10px] py-1 flex-none"
+                style="background:#E7F2EA">
+            ~{{ product.estimatedDays }}&nbsp;j
+          </span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9BC9F"
+               stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" class="flex-none">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+      }
+    }
+
+  </div>
+</div>
