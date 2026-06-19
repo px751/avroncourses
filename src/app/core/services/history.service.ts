@@ -7,6 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { ArchivedList, ListItem, Rayon } from '../models';
 import { RAYON_META } from '../utils/rayon';
+import { normalize } from '../utils/normalize';
 
 export interface MonthlyPurchase { month: string; count: number; }
 
@@ -26,10 +27,6 @@ export interface ProductStat {
   lastCheckedBy?: string;
   prevPurchaseAt?: number;
   prevPurchaseBy?: string;
-}
-
-function normalize(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
 }
 
 @Injectable({ providedIn: 'root' })

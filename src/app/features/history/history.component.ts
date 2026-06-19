@@ -19,12 +19,13 @@ export class HistoryComponent {
 
   tab = signal<'lists' | 'products'>('lists');
 
-  // Swipe-to-delete state
+  // ── Swipe-to-delete state ──
   swipedId = signal<string | null>(null);
   swipeX   = signal(0);
   private startX         = 0;
   private startY         = 0;
   private dragging       = false;
+  private wasSwiping     = false;
   private directionLocked: 'h' | 'v' | null = null;
   readonly SWIPE_THRESHOLD   = 60;
   readonly SWIPE_OPEN        = -84;
@@ -38,6 +39,7 @@ export class HistoryComponent {
     this.startX          = e.clientX - (this.swipedId() === id ? this.swipeX() : 0);
     this.startY          = e.clientY;
     this.dragging        = true;
+    this.wasSwiping      = false;
     this.directionLocked = null;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
@@ -54,6 +56,7 @@ export class HistoryComponent {
     if (this.directionLocked === 'v') return;
     if (!this.directionLocked && Math.abs(dy) > Math.abs(dx)) return;
 
+    if (Math.abs(dx) > 6) this.wasSwiping = true;
     this.swipedId.set(id);
     this.swipeX.set(Math.max(this.SWIPE_OPEN, Math.min(0, dx)));
   }
@@ -63,6 +66,11 @@ export class HistoryComponent {
     this.dragging = false;
     if (this.swipeX() < -this.SWIPE_THRESHOLD) {
       this.swipeX.set(this.SWIPE_OPEN);
+    } else if (!this.wasSwiping) {
+      // tap — navigate to list detail
+      this.swipedId.set(null);
+      this.swipeX.set(0);
+      this.router.navigate(['/history', id]);
     } else {
       this.swipedId.set(null);
       this.swipeX.set(0);

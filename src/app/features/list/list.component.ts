@@ -9,6 +9,7 @@ import { ListItemComponent } from '../../shared/components/list-item.component';
 import { Rayon } from '../../core/models';
 import { MemberColorPipe } from '../../shared/pipes/member-color.pipe';
 import { RAYON_META } from '../../core/utils/rayon';
+import { normalize } from '../../core/utils/normalize';
 
 @Component({
   selector: 'app-list',
@@ -89,7 +90,7 @@ export class ListComponent {
         const item = this.list.items().find(i => i.id === id);
         if (item) {
           const product = this.history.getProductByName(item.name);
-          if (product) this.router.navigate(['/product', product.id]);
+          this.router.navigate(['/product', product?.id ?? normalize(item.name)]);
         }
       }
     }, 500);

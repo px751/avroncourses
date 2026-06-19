@@ -10,6 +10,7 @@ import { SessionService } from '../../core/services/session.service';
 import { MemberColorPipe } from '../../shared/pipes/member-color.pipe';
 import { FrenchDatePipe } from '../../shared/pipes/french-date.pipe';
 import { RAYON_META } from '../../core/utils/rayon';
+import { normalize } from '../../core/utils/normalize';
 import { Rayon } from '../../core/models';
 
 const RAYON_ORDER: Rayon[] = ['fruits', 'frais', 'epicerie', 'inconnue'];
@@ -30,7 +31,34 @@ export class ProductComponent {
 
   private productId = toSignal(this.route.paramMap.pipe(map(p => p.get('id') ?? '')));
 
-  readonly product = computed(() => this.history.getProductById(this.productId() ?? ''));
+  readonly product = computed(() => {
+    const id = this.productId() ?? '';
+    // Prioritise archived history; fall back to current list item (not yet archived)
+    return this.history.getProductById(id) ?? this.buildFromListItem(id);
+  });
+
+  private buildFromListItem(id: string) {
+    const item = this.list.items().find(i => normalize(i.name) === id);
+    if (!item) return null;
+    const meta = RAYON_META[item.rayon] ?? RAYON_META['inconnue'];
+    return {
+      id,
+      name:          item.name,
+      rayon:         item.rayon as string,
+      rayonDot:      meta.dot,
+      rayonLabel:    meta.label,
+      purchaseCount: 0,
+      estimatedDays: 0,
+      avgDays:       0,
+      monthlyPurchases: [] as import('../../core/services/history.service').MonthlyPurchase[],
+      lastAddedAt:    item.addedAt,
+      lastAddedBy:    item.addedBy,
+      lastCheckedAt:  undefined,
+      lastCheckedBy:  undefined,
+      prevPurchaseAt: undefined,
+      prevPurchaseBy: undefined,
+    };
+  }
 
   readonly rayonPill = computed(() => {
     const p = this.product();

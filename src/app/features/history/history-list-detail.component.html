@@ -1,0 +1,99 @@
+@if (archivedList(); as list) {
+  <div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top); padding-bottom: calc(56px + env(safe-area-inset-bottom))">
+
+    <!-- ── Header ── -->
+    <div class="flex-none px-[22px] pt-2 pb-1">
+      <div class="flex items-center gap-[11px] mb-[6px]">
+        <button (click)="back()"
+          class="w-[38px] h-[38px] rounded-add bg-white flex items-center justify-center flex-none"
+          style="box-shadow: 0 2px 8px -3px rgba(33,28,22,0.2)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211C16"
+               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <span class="font-display text-[21px] font-extrabold text-text-primary tracking-[-0.01em]">
+          {{ list.date | frenchDate }}
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2 pl-[49px] mb-[14px]">
+        <span class="text-[13px] text-text-secondary">
+          {{ list.items.length }} article{{ list.items.length > 1 ? 's' : '' }}
+          @if (participantInitials()) { · {{ participantInitials() }} }
+        </span>
+        <span class="inline-flex items-center gap-[5px] text-[11.5px] font-semibold rounded-full px-[9px] py-[3px]"
+              style="color: #8E8270; background: #EFEADC">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8E8270"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="11" width="16" height="9" rx="2"/>
+            <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+          </svg>
+          Lecture seule
+        </span>
+      </div>
+
+      <div class="flex items-center justify-between pb-1">
+        <span class="text-[13px] font-bold tracking-[0.03em] uppercase text-text-tertiary">
+          Articles à reprendre
+        </span>
+        <button (click)="selectAll()" class="text-[13.5px] font-semibold text-ac">
+          Tout sélectionner
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Liste des articles ── -->
+    <div class="flex-1 overflow-auto px-4 pt-2 pb-4">
+      <div class="bg-white rounded-[22px] overflow-hidden"
+           style="box-shadow: 0 6px 20px -10px rgba(33,28,22,0.22)">
+        @for (item of list.items; track item.name; let last = $last) {
+          <button (click)="toggle(item.name)"
+                  class="flex items-center gap-[14px] px-4 py-[13px] w-full text-left"
+                  [class.border-b]="!last"
+                  style="border-color: #F1EADC">
+            <!-- Checkbox -->
+            @if (isChecked(item.name)) {
+              <span class="w-[26px] h-[26px] rounded-[8px] flex-none bg-ac flex items-center justify-center">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff">
+                  <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
+                </svg>
+              </span>
+            } @else {
+              <span class="w-[26px] h-[26px] rounded-[8px] flex-none"
+                    style="border: 2.5px solid #D8CDB6"></span>
+            }
+            <!-- Nom -->
+            <span class="flex-1 text-[16px] font-medium"
+                  [style.color]="isChecked(item.name) ? '#211C16' : '#A79C8A'">
+              {{ item.name }}
+            </span>
+            <!-- Rayon -->
+            <span class="text-[12px] flex-none"
+                  [style.color]="isChecked(item.name) ? '#877E6E' : '#A79C8A'">
+              {{ rayon(item.rayon).label }}
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── Footer CTA ── -->
+    <div class="flex-none px-[18px] bg-bg-app border-t" style="border-color: #ECE3D2; padding-top: 12px; padding-bottom: 12px">
+      <button (click)="addToList()"
+              [disabled]="selectedCount() === 0"
+              class="w-full rounded-[16px] text-white font-bold text-[16.5px] py-4 transition-opacity"
+              [class.opacity-40]="selectedCount() === 0"
+              style="background: #1A8F5C; box-shadow: 0 10px 24px -10px rgba(26,143,92,0.55)">
+        Ajouter {{ selectedCount() }} article{{ selectedCount() === 1 ? '' : 's' }} à ma liste
+      </button>
+    </div>
+
+  </div>
+} @else {
+  <div class="flex flex-col h-screen items-center justify-center bg-bg-app gap-3"
+       style="padding-top: env(safe-area-inset-top)">
+    <span class="text-text-secondary text-[15px]">Liste introuvable</span>
+    <button (click)="back()" class="text-ac font-semibold text-[14px]">← Retour</button>
+  </div>
+}

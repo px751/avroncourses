@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top)">
+<div class="flex flex-col h-screen bg-bg-app" style="padding-top: env(safe-area-inset-top); padding-bottom: calc(56px + env(safe-area-inset-bottom))">
 
   <!-- ── Header ── -->
   <div class="flex-none px-[22px] pt-2 pb-1">
@@ -91,7 +91,7 @@
   <!-- ── FAB ── -->
   <a routerLink="/add-item"
      class="absolute right-[18px] w-[58px] h-[58px] rounded-full bg-ac flex items-center justify-center z-20"
-     style="bottom: calc(108px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-fab)">
+     style="bottom: calc(160px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-fab)">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff">
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
     </svg>
@@ -99,7 +99,7 @@
 
   <!-- ── Footer ── -->
   <div class="flex-none px-[22px] pt-3 bg-bg-app border-t"
-       style="border-color: #ECE3D2; padding-bottom: calc(10px + env(safe-area-inset-bottom))">
+       style="border-color: #ECE3D2; padding-bottom: 10px">
     <div class="flex items-center justify-between mb-[10px]">
       <span class="text-[14px] text-text-secondary">
         <b class="font-display font-bold text-text-primary text-[15px]">{{ list.uncheckedCount() }}</b>
