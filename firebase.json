@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/avroncourse",
+    "public": "dist/avroncourse/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
