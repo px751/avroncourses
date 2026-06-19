@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Auth, authState,
   GoogleAuthProvider,
-  signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
+  signInWithPopup, signOut,
 } from '@angular/fire/auth';
 import { MembersService } from './members.service';
 
@@ -24,17 +24,12 @@ export class SessionService {
     return this.currentUser()?.uid ?? null;
   }
 
-  loginWithGoogle(): Promise<void> {
+  async loginWithGoogle(): Promise<void> {
+    // signInWithPopup works in all contexts (browser + iOS PWA standalone).
+    // signInWithRedirect breaks iOS PWA: the redirect opens in Safari which has
+    // a separate localStorage, so the auth result never reaches the PWA.
     const provider = new GoogleAuthProvider();
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    if (isStandalone) {
-      return signInWithRedirect(this.auth, provider);
-    }
-    return signInWithPopup(this.auth, provider).then();
-  }
-
-  getRedirectResult() {
-    return getRedirectResult(this.auth);
+    await signInWithPopup(this.auth, provider);
   }
 
   async logout(): Promise<void> {

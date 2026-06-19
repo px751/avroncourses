@@ -37,15 +37,9 @@ export class AuthComponent implements OnInit {
   });
 
   async ngOnInit() {
+    // If already signed in (e.g. token persisted), go straight through
     const existingUser = this.auth.currentUser;
-    if (existingUser) {
-      await this.handleUser(existingUser);
-      return;
-    }
-    try {
-      const result = await this.session.getRedirectResult();
-      if (result?.user) await this.handleUser(result.user);
-    } catch { /* no redirect in progress */ }
+    if (existingUser) await this.handleUser(existingUser);
   }
 
   private async handleUser(user: User): Promise<void> {
@@ -65,8 +59,6 @@ export class AuthComponent implements OnInit {
     this.error.set('');
     try {
       await this.session.loginWithGoogle();
-      // popup: handleUser is called inline via signInWithPopup promise
-      // redirect: page navigates away; result handled in ngOnInit on return
       const user = this.auth.currentUser;
       if (user) await this.handleUser(user);
     } catch (e: any) {

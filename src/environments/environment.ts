@@ -1,7 +1,7 @@
 export const environment = {
   firebase: {
     apiKey: 'AIzaSyCQ03yWqtFSn1dxJg5TwY97MYGr969kCYA',
-    authDomain: 'avroncourses.firebaseapp.com',
+    authDomain: 'avroncourses.web.app',
     projectId: 'avroncourses',
     storageBucket: 'avroncourses.firebasestorage.app',
     messagingSenderId: '346798501391',
