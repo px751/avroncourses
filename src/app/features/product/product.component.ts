@@ -73,9 +73,16 @@ export class ProductComponent {
     return Math.max(4, ...p.monthlyPurchases.map(m => m.count));
   });
 
+  // Chart: visible dès le 1er achat archivé
+  readonly hasChart = computed(() => {
+    const p = this.product();
+    return !!p && p.monthlyPurchases.some(m => m.count > 0);
+  });
+
+  // Estimation : nécessite ≥2 achats avec intervalle cohérent
   readonly hasData = computed(() => {
     const p = this.product();
-    return !!p && p.estimatedDays > 0 && p.monthlyPurchases.length >= 2;
+    return !!p && p.estimatedDays > 0;
   });
 
   barHeight(item: MonthlyPurchase): string {
