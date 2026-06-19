@@ -36,6 +36,7 @@ export class HistoryService {
 
   readonly lists: Signal<ArchivedList[]>;
   readonly productSearch = signal('');
+  readonly activeTab = signal<'lists' | 'products'>('lists');
   private rayonOverrides = signal<Record<string, Rayon>>(this.loadRayonOverrides());
 
   readonly products: Signal<ProductStat[]>;

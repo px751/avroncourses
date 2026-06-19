@@ -1,5 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
@@ -22,8 +23,9 @@ const RAYON_ORDER: Rayon[] = ['fruits', 'frais', 'epicerie', 'inconnue'];
   templateUrl: './product.component.html',
 })
 export class ProductComponent {
-  private route  = inject(ActivatedRoute);
-  private router = inject(Router);
+  private route    = inject(ActivatedRoute);
+  private router   = inject(Router);
+  private location = inject(Location);
   private session  = inject(SessionService);
   readonly history = inject(HistoryService);
   readonly members = inject(MembersService);
@@ -129,6 +131,6 @@ export class ProductComponent {
   }
 
   back() {
-    this.router.navigate(['/history']);
+    this.location.back();
   }
 }

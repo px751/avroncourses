@@ -17,8 +17,6 @@ export class HistoryComponent {
   readonly history = inject(HistoryService);
   readonly members = inject(MembersService);
 
-  tab = signal<'lists' | 'products'>('lists');
-
   // ── Swipe-to-delete state ──
   swipedId = signal<string | null>(null);
   swipeX   = signal(0);
