@@ -7,18 +7,18 @@
       <span class="font-display text-[22px] font-extrabold text-text-primary tracking-[-0.01em] leading-none">
         Ma liste
       </span>
-      <div class="flex items-center">
-        @for (member of members.all; track member.id; let i = $index) {
+      <button (click)="showProfileSheet.set(true)" class="flex items-center" style="touch-action: manipulation">
+        @for (member of members.all(); track member.id; let i = $index) {
           @let color = member.colorIndex | memberColor;
           <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[14px] font-bold"
                [style.margin-left]="i > 0 ? '-10px' : '0'"
                [style.background]="color.bg"
                [style.color]="color.text"
-               style="border: 2.5px solid #FBF6EC">
+               [style.border]="member.id === session.uid ? '2.5px solid ' + color.text : '2.5px solid #FBF6EC'">
             {{ member.avatarLetter }}
           </div>
         }
-      </div>
+      </button>
     </div>
 
     <!-- Toggle À plat / Par rayon -->
@@ -183,6 +183,49 @@
     </div>
   </div>
 </ng-template>
+
+<!-- ── Sheet profil / membres ── -->
+@if (showProfileSheet()) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center"
+       style="background: rgba(33,28,22,0.5)"
+       (click)="showProfileSheet.set(false)">
+    <div class="w-full max-w-[390px] bg-bg-app rounded-t-[28px] px-5 pt-4"
+         style="padding-bottom: calc(30px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 30px -10px rgba(33,28,22,0.4)"
+         (click)="$event.stopPropagation()">
+      <div class="w-[42px] h-[5px] rounded-full mx-auto mb-[18px]" style="background: #D8CDB6"></div>
+
+      <div class="font-display font-extrabold text-[18px] text-text-primary mb-[14px]">La liste</div>
+
+      <!-- Membres -->
+      <div class="flex flex-col gap-[10px] mb-5">
+        @for (member of members.all(); track member.id) {
+          @let color = member.colorIndex | memberColor;
+          <div class="flex items-center gap-3 bg-white rounded-[14px] px-4 py-[12px]"
+               style="box-shadow: 0 4px 14px -8px rgba(33,28,22,0.18)">
+            <div class="w-[38px] h-[38px] rounded-full flex items-center justify-center text-[15px] font-bold flex-none"
+                 [style.background]="color.bg"
+                 [style.color]="color.text">
+              {{ member.avatarLetter }}
+            </div>
+            <span class="flex-1 text-[15.5px] font-medium text-text-primary">{{ member.name }}</span>
+            @if (member.id === session.uid) {
+              <span class="text-[12px] font-semibold px-[8px] py-[3px] rounded-full"
+                    [style.background]="color.bg"
+                    [style.color]="color.text">moi</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Déconnexion -->
+      <button (click)="logout()"
+        class="w-full py-[14px] rounded-[14px] font-semibold text-[15px]"
+        style="border: 1.5px solid #D2563D; color: #D2563D; touch-action: manipulation">
+        Se déconnecter
+      </button>
+    </div>
+  </div>
+}
 
 <!-- ── Sheet sélecteur de rayon ── -->
 @if (rayonPickerId(); as pickId) {

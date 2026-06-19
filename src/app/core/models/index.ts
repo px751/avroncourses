@@ -3,7 +3,7 @@ export type Rayon = 'fruits' | 'frais' | 'epicerie' | 'inconnue';
 export interface Member {
   id: string;
   name: string;
-  birthDate: string; // YYYY-MM-DD
+  birthDate?: string; // YYYY-MM-DD
   avatarLetter: string;
   colorIndex: number; // index into MEMBER_COLORS palette
 }

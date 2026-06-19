@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { HistoryService, MonthlyPurchase } from '../../core/services/history.service';
 import { MembersService } from '../../core/services/members.service';
 import { ListService } from '../../core/services/list.service';
+import { SessionService } from '../../core/services/session.service';
 import { MemberColorPipe } from '../../shared/pipes/member-color.pipe';
 import { FrenchDatePipe } from '../../shared/pipes/french-date.pipe';
 import { RAYON_META } from '../../core/utils/rayon';
@@ -22,6 +23,7 @@ const RAYON_ORDER: Rayon[] = ['fruits', 'frais', 'epicerie', 'inconnue'];
 export class ProductComponent {
   private route  = inject(ActivatedRoute);
   private router = inject(Router);
+  private session  = inject(SessionService);
   readonly history = inject(HistoryService);
   readonly members = inject(MembersService);
   readonly list    = inject(ListService);
@@ -84,11 +86,10 @@ export class ProductComponent {
   }
 
   addToList() {
-    const p = this.product();
-    if (!p) return;
-    const session = JSON.parse(localStorage.getItem('avroncourse_session') ?? 'null');
-    const memberId = session?.memberId ?? 'antoine';
-    this.list.add(p.name, p.rayon as Rayon, memberId);
+    const p   = this.product();
+    const uid = this.session.uid;
+    if (!p || !uid) return;
+    this.list.add(p.name, p.rayon as Rayon, uid);
     this.router.navigate(['/list']);
   }
 

@@ -1,7 +1,10 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { provideFirestore } from '@angular/fire/firestore';
+import { initializeFirestore, persistentLocalCache } from '@firebase/firestore';
+import { getApp } from 'firebase/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
 
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
@@ -16,6 +19,7 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideFirestore(() => getFirestore()),
+    provideFirestore(() => initializeFirestore(getApp(), { localCache: persistentLocalCache() })),
+    provideAuth(() => getAuth()),
   ],
 };

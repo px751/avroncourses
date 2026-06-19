@@ -1,9 +1,14 @@
 {
-  "name": "avroncourse",
-  "short_name": "avroncourse",
+  "name": "AvronCourses",
+  "short_name": "AvronCourses",
+  "description": "Votre liste de courses partagée",
+  "lang": "fr",
   "display": "standalone",
-  "scope": "./",
-  "start_url": "./",
+  "orientation": "portrait",
+  "background_color": "#FBF6EC",
+  "theme_color": "#1A8F5C",
+  "scope": "/",
+  "start_url": "/list",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

@@ -8,10 +8,6 @@ import { Observable } from 'rxjs';
 import { ArchivedList, ListItem, Rayon } from '../models';
 import { RAYON_META } from '../utils/rayon';
 
-function d(year: number, month: number, day: number) {
-  return new Date(year, month - 1, day).getTime();
-}
-
 export interface MonthlyPurchase { month: string; count: number; }
 
 export interface ProductStat {
@@ -32,122 +28,9 @@ export interface ProductStat {
   prevPurchaseBy?: string;
 }
 
-const MOCK_PRODUCTS: ProductStat[] = [
-  {
-    id: 'p1', name: 'Lait demi-écrémé', rayon: 'frais',
-    rayonDot: '#3E7FB8', rayonLabel: 'Frais',
-    purchaseCount: 11, estimatedDays: 5, avgDays: 14,
-    monthlyPurchases: [
-      { month: 'déc', count: 2 }, { month: 'jan', count: 3 },
-      { month: 'fév', count: 2 }, { month: 'mar', count: 3 },
-      { month: 'avr', count: 2 }, { month: 'mai', count: 4 },
-      { month: 'juin', count: 3 },
-    ],
-    lastAddedAt: d(2026, 6, 7), lastAddedBy: 'marie',
-    lastCheckedAt: d(2026, 6, 8), lastCheckedBy: 'marie',
-    prevPurchaseAt: d(2026, 5, 24), prevPurchaseBy: 'antoine',
-  },
-  {
-    id: 'p2', name: 'Bananes', rayon: 'fruits',
-    rayonDot: '#1A8F5C', rayonLabel: 'Fruits & lég.',
-    purchaseCount: 14, estimatedDays: 3, avgDays: 7,
-    monthlyPurchases: [
-      { month: 'déc', count: 2 }, { month: 'jan', count: 3 },
-      { month: 'fév', count: 2 }, { month: 'mar', count: 4 },
-      { month: 'avr', count: 3 }, { month: 'mai', count: 4 },
-      { month: 'juin', count: 3 },
-    ],
-    lastAddedAt: d(2026, 6, 14), lastAddedBy: 'antoine',
-    lastCheckedAt: d(2026, 6, 14), lastCheckedBy: 'antoine',
-    prevPurchaseAt: d(2026, 6, 7), prevPurchaseBy: 'marie',
-  },
-  {
-    id: 'p3', name: 'Café moulu', rayon: 'epicerie',
-    rayonDot: '#E8A33D', rayonLabel: 'Épicerie',
-    purchaseCount: 6, estimatedDays: 12, avgDays: 30,
-    monthlyPurchases: [
-      { month: 'jan', count: 1 }, { month: 'fév', count: 0 },
-      { month: 'mar', count: 1 }, { month: 'avr', count: 2 },
-      { month: 'mai', count: 1 }, { month: 'juin', count: 1 },
-    ],
-    lastAddedAt: d(2026, 6, 1), lastAddedBy: 'antoine',
-    lastCheckedAt: d(2026, 6, 1), lastCheckedBy: 'antoine',
-    prevPurchaseAt: d(2026, 5, 2), prevPurchaseBy: 'antoine',
-  },
-  {
-    id: 'p4', name: 'Œufs ×6', rayon: 'frais',
-    rayonDot: '#3E7FB8', rayonLabel: 'Frais',
-    purchaseCount: 9, estimatedDays: 6, avgDays: 14,
-    monthlyPurchases: [
-      { month: 'jan', count: 2 }, { month: 'fév', count: 1 },
-      { month: 'mar', count: 2 }, { month: 'avr', count: 2 },
-      { month: 'mai', count: 2 }, { month: 'juin', count: 2 },
-    ],
-    lastAddedAt: d(2026, 6, 7), lastAddedBy: 'marie',
-    lastCheckedAt: d(2026, 6, 8), lastCheckedBy: 'marie',
-    prevPurchaseAt: d(2026, 5, 24), prevPurchaseBy: 'antoine',
-  },
-  {
-    id: 'p5', name: 'Pain de mie', rayon: 'epicerie',
-    rayonDot: '#E8A33D', rayonLabel: 'Épicerie',
-    purchaseCount: 12, estimatedDays: 4, avgDays: 7,
-    monthlyPurchases: [
-      { month: 'déc', count: 2 }, { month: 'jan', count: 3 },
-      { month: 'fév', count: 3 }, { month: 'mar', count: 3 },
-      { month: 'avr', count: 2 }, { month: 'mai', count: 3 },
-      { month: 'juin', count: 3 },
-    ],
-    lastAddedAt: d(2026, 6, 14), lastAddedBy: 'antoine',
-    lastCheckedAt: d(2026, 6, 14), lastCheckedBy: 'antoine',
-    prevPurchaseAt: d(2026, 6, 7), prevPurchaseBy: 'marie',
-  },
-  {
-    id: 'p6', name: 'Yaourts nature', rayon: 'frais',
-    rayonDot: '#3E7FB8', rayonLabel: 'Frais',
-    purchaseCount: 10, estimatedDays: 8, avgDays: 21,
-    monthlyPurchases: [
-      { month: 'jan', count: 1 }, { month: 'fév', count: 2 },
-      { month: 'mar', count: 2 }, { month: 'avr', count: 2 },
-      { month: 'mai', count: 2 }, { month: 'juin', count: 2 },
-    ],
-    lastAddedAt: d(2026, 6, 7), lastAddedBy: 'marie',
-    lastCheckedAt: d(2026, 6, 8), lastCheckedBy: 'marie',
-    prevPurchaseAt: d(2026, 5, 17), prevPurchaseBy: 'marie',
-  },
-  {
-    id: 'p7', name: 'Tomates', rayon: 'fruits',
-    rayonDot: '#1A8F5C', rayonLabel: 'Fruits & lég.',
-    purchaseCount: 8, estimatedDays: 7, avgDays: 10,
-    monthlyPurchases: [
-      { month: 'fév', count: 1 }, { month: 'mar', count: 2 },
-      { month: 'avr', count: 2 }, { month: 'mai', count: 2 },
-      { month: 'juin', count: 2 },
-    ],
-    lastAddedAt: d(2026, 6, 7), lastAddedBy: 'antoine',
-    lastCheckedAt: d(2026, 6, 7), lastCheckedBy: 'antoine',
-    prevPurchaseAt: d(2026, 5, 28), prevPurchaseBy: 'marie',
-  },
-  {
-    id: 'p8', name: 'Beurre', rayon: 'frais',
-    rayonDot: '#3E7FB8', rayonLabel: 'Frais',
-    purchaseCount: 7, estimatedDays: 10, avgDays: 30,
-    monthlyPurchases: [
-      { month: 'jan', count: 1 }, { month: 'mar', count: 2 },
-      { month: 'avr', count: 1 }, { month: 'mai', count: 2 },
-      { month: 'juin', count: 1 },
-    ],
-    lastAddedAt: d(2026, 6, 1), lastAddedBy: 'marie',
-    lastCheckedAt: d(2026, 6, 1), lastCheckedBy: 'marie',
-    prevPurchaseAt: d(2026, 5, 2), prevPurchaseBy: 'antoine',
-  },
-  {
-    id: 'p9', name: 'Sopalin', rayon: 'inconnue',
-    rayonDot: '#A89C86', rayonLabel: 'Inconnue',
-    purchaseCount: 1, estimatedDays: 0, avgDays: 0,
-    monthlyPurchases: [],
-    lastAddedAt: d(2026, 6, 11), lastAddedBy: 'antoine',
-  },
-];
+function normalize(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+}
 
 @Injectable({ providedIn: 'root' })
 export class HistoryService {
@@ -155,9 +38,10 @@ export class HistoryService {
   private archivesRef = collection(this.fs, 'archives');
 
   readonly lists: Signal<ArchivedList[]>;
-  readonly products = signal<ProductStat[]>(MOCK_PRODUCTS);
   readonly productSearch = signal('');
+  private rayonOverrides = signal<Record<string, Rayon>>(this.loadRayonOverrides());
 
+  readonly products: Signal<ProductStat[]>;
   readonly filteredProducts: Signal<ProductStat[]>;
 
   constructor() {
@@ -168,42 +52,139 @@ export class HistoryService {
 
     this.lists = toSignal(lists$, { initialValue: [] });
 
+    this.products = computed(() => this.computeProducts(this.lists()));
+
     this.filteredProducts = computed(() => {
-      const q = this.productSearch().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+      const q = normalize(this.productSearch());
       if (!q) return this.products();
-      return this.products().filter(p =>
-        p.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(q)
-      );
+      return this.products().filter(p => normalize(p.name).includes(q));
     });
   }
+
+  // ── Public API ────────────────────────────────────────────────────────────
 
   getProductById(id: string): ProductStat | undefined {
     return this.products().find(p => p.id === id);
   }
 
   getProductByName(name: string): ProductStat | undefined {
-    const n = name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
-    return this.products().find(p =>
-      p.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '') === n
-    );
+    const n = normalize(name);
+    return this.products().find(p => normalize(p.name) === n);
   }
 
   setProductRayon(id: string, rayon: Rayon) {
-    const m = RAYON_META[rayon];
-    this.products.update(list => list.map(p =>
-      p.id === id ? { ...p, rayon, rayonDot: m.dot, rayonLabel: m.label } : p
-    ));
+    this.rayonOverrides.update(o => ({ ...o, [id]: rayon }));
+    localStorage.setItem('ac_rayon_overrides', JSON.stringify(this.rayonOverrides()));
   }
 
   archiveList(items: ListItem[], participants: string[]) {
-    addDoc(this.archivesRef, {
-      date: Date.now(),
-      items,
-      participants,
-    });
+    addDoc(this.archivesRef, { date: Date.now(), items, participants });
   }
 
   deleteList(id: string) {
     deleteDoc(doc(this.fs, 'archives', id));
+  }
+
+  // ── Product computation ───────────────────────────────────────────────────
+
+  private computeProducts(lists: ArchivedList[]): ProductStat[] {
+    // Collect purchases per product (oldest first so latest wins for name/rayon)
+    const map = new Map<string, {
+      name: string;
+      rayon: Rayon;
+      purchases: { date: number; addedBy: string }[];
+    }>();
+
+    for (const list of [...lists].sort((a, b) => a.date - b.date)) {
+      for (const item of list.items) {
+        if (!item.name?.trim()) continue;
+        const key = normalize(item.name);
+        if (!map.has(key)) map.set(key, { name: item.name, rayon: item.rayon as Rayon, purchases: [] });
+        const p = map.get(key)!;
+        p.name  = item.name;        // keep latest casing
+        p.rayon = item.rayon as Rayon;
+        p.purchases.push({ date: list.date, addedBy: item.addedBy });
+      }
+    }
+
+    const now = Date.now();
+    const results: ProductStat[] = [];
+
+    for (const [key, p] of map) {
+      const sorted = [...p.purchases].sort((a, b) => b.date - a.date);
+      const last   = sorted[0];
+      const prev   = sorted[1];
+
+      let avgDays = 0;
+      let estimatedDays = 0;
+
+      if (sorted.length >= 2) {
+        const intervals: number[] = [];
+        for (let i = 0; i < sorted.length - 1; i++) {
+          const days = (sorted[i].date - sorted[i + 1].date) / 86_400_000;
+          if (days <= 365) intervals.push(days); // ignore irregular > 1 year
+        }
+        if (intervals.length > 0) {
+          avgDays = Math.round(intervals.reduce((a, b) => a + b) / intervals.length);
+          const daysSinceLast = (now - last.date) / 86_400_000;
+          estimatedDays = Math.max(0, Math.round(avgDays - daysSinceLast));
+        }
+      }
+
+      const rayon = this.rayonOverrides()[key] ?? p.rayon;
+      const meta  = RAYON_META[rayon] ?? RAYON_META['inconnue'];
+
+      results.push({
+        id: key,
+        name: p.name,
+        rayon,
+        rayonDot:   meta.dot,
+        rayonLabel: meta.label,
+        purchaseCount:  sorted.length,
+        estimatedDays,
+        avgDays,
+        monthlyPurchases: this.computeMonthlyPurchases(sorted.map(s => s.date)),
+        lastAddedAt:   last.date,
+        lastAddedBy:   last.addedBy,
+        lastCheckedAt: last.date,
+        lastCheckedBy: last.addedBy,
+        prevPurchaseAt: prev?.date,
+        prevPurchaseBy: prev?.addedBy,
+      });
+    }
+
+    // Sort: soonest estimate first, then by purchase count
+    return results.sort((a, b) => {
+      if (a.estimatedDays > 0 && b.estimatedDays > 0) return a.estimatedDays - b.estimatedDays;
+      if (a.estimatedDays > 0) return -1;
+      if (b.estimatedDays > 0) return 1;
+      return b.purchaseCount - a.purchaseCount;
+    });
+  }
+
+  private computeMonthlyPurchases(dates: number[]): MonthlyPurchase[] {
+    const MONTHS = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc'];
+    const now    = new Date();
+    const result: MonthlyPurchase[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const ref = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const count = dates.filter(ts => {
+        const d = new Date(ts);
+        return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+      }).length;
+      result.push({ month: MONTHS[ref.getMonth()], count });
+    }
+
+    // Trim leading zero-months (keep min 2)
+    let start = 0;
+    while (start < result.length - 2 && result[start].count === 0) start++;
+    return result.slice(start);
+  }
+
+  private loadRayonOverrides(): Record<string, Rayon> {
+    try {
+      return JSON.parse(localStorage.getItem('ac_rayon_overrides') ?? '{}');
+    } catch { return {}; }
   }
 }

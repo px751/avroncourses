@@ -63,6 +63,14 @@ export class ListComponent {
   // ── Archive sheet ──
   showArchiveConfirm = signal(false);
 
+  // ── Profile / logout sheet ──
+  showProfileSheet = signal(false);
+
+  async logout() {
+    await this.session.logout();
+    this.router.navigate(['/auth']);
+  }
+
   onPointerDown(e: PointerEvent, id: string) {
     // Reset any previously open item
     this.swipedId.set(null);
@@ -159,7 +167,13 @@ export class ListComponent {
     return this.swipedId() === id ? Math.max(0, this.swipeX()) : 0;
   }
 
-  archiveConfirm() { this.showArchiveConfirm.set(true); }
+  archiveConfirm() {
+    if (this.list.uncheckedCount() === 0) {
+      this.archiveDeleteUnchecked();
+    } else {
+      this.showArchiveConfirm.set(true);
+    }
+  }
   archiveCancel()  { this.showArchiveConfirm.set(false); }
 
   archiveKeepUnchecked() {

@@ -1,67 +1,103 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { Auth } from '@angular/fire/auth';
+import type { User } from '@angular/fire/auth';
 import { MembersService } from '../../core/services/members.service';
 import { SessionService } from '../../core/services/session.service';
-import { Member } from '../../core/models';
-import { WheelColComponent } from '../../shared/components/wheel-col.component';
 import { MemberColorPipe } from '../../shared/pipes/member-color.pipe';
-
-const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const DAYS   = Array.from({ length: 31 }, (_, i) => String(i + 1));
-const YEARS  = Array.from({ length: 100 }, (_, i) => String(new Date().getFullYear() - i));
+import { MEMBER_COLORS } from '../../core/utils/member-colors';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [WheelColComponent, MemberColorPipe],
+  imports: [MemberColorPipe],
   templateUrl: './auth.component.html',
 })
-export class AuthComponent {
-  private membersService = inject(MembersService);
-  private session  = inject(SessionService);
-  private router   = inject(Router);
+export class AuthComponent implements OnInit {
+  private auth    = inject(Auth);
+  private session = inject(SessionService);
+  private members = inject(MembersService);
+  private router  = inject(Router);
 
-  readonly memberList = this.membersService.all;
-  readonly days   = DAYS;
-  readonly months = MONTHS;
-  readonly years  = YEARS;
+  step                = signal<'login' | 'profile'>('login');
+  loading             = signal(false);
+  error               = signal('');
+  newName             = signal('');
+  selectedColorIndex  = signal(0);
+  private pendingUser: User | null = null;
 
-  step            = signal<'select' | 'dob'>('select');
-  selectedMember  = signal<Member | null>(null);
-  dobDay          = signal(DAYS[11]);   // 12
-  dobMonth        = signal(MONTHS[2]);  // mars
-  dobYear         = signal('1990');
-  authError       = signal(false);
+  readonly colorPalette = MEMBER_COLORS;
 
-  formattedDob = computed(() =>
-    `${this.dobDay()} ${this.dobMonth()} ${this.dobYear()}`
-  );
+  readonly suggestedColorIndex = computed(() => {
+    const taken = this.members.all().map(m => m.colorIndex);
+    for (let i = 0; i < MEMBER_COLORS.length; i++) {
+      if (!taken.includes(i)) return i;
+    }
+    return taken.length % MEMBER_COLORS.length;
+  });
 
-  selectMember(member: Member) {
-    this.selectedMember.set(member);
-    this.authError.set(false);
-    this.step.set('dob');
-  }
-
-  back() {
-    this.step.set('select');
-    this.authError.set(false);
-  }
-
-  login() {
-    const member = this.selectedMember();
-    if (!member) return;
-
-    const day   = parseInt(this.dobDay(), 10);
-    const month = MONTHS.indexOf(this.dobMonth()) + 1;
-    const year  = parseInt(this.dobYear(), 10);
-
-    if (!this.membersService.validateBirthDate(member.id, day, month, year)) {
-      this.authError.set(true);
+  async ngOnInit() {
+    const existingUser = this.auth.currentUser;
+    if (existingUser) {
+      await this.handleUser(existingUser);
       return;
     }
+    try {
+      const result = await this.session.getRedirectResult();
+      if (result?.user) await this.handleUser(result.user);
+    } catch { /* no redirect in progress */ }
+  }
 
-    this.session.login(member);
-    this.router.navigate(['/list']);
+  private async handleUser(user: User): Promise<void> {
+    const member = await this.members.getMemberDoc(user.uid);
+    if (member) {
+      this.router.navigate(['/list']);
+    } else {
+      this.pendingUser = user;
+      this.newName.set(user.displayName?.split(' ')[0] ?? '');
+      this.selectedColorIndex.set(this.suggestedColorIndex());
+      this.step.set('profile');
+    }
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.session.loginWithGoogle();
+      // popup: handleUser is called inline via signInWithPopup promise
+      // redirect: page navigates away; result handled in ngOnInit on return
+      const user = this.auth.currentUser;
+      if (user) await this.handleUser(user);
+    } catch (e: any) {
+      if (e.code === 'auth/popup-closed-by-user') {
+        this.error.set('Connexion annulée.');
+      } else if (e.code !== 'auth/cancelled-popup-request') {
+        this.error.set('Connexion échouée. Réessaie.');
+      }
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  setName(e: Event) {
+    this.newName.set((e.target as HTMLInputElement).value);
+  }
+
+  async createProfile(): Promise<void> {
+    if (!this.pendingUser || !this.newName().trim()) return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.members.createMember(
+        this.pendingUser.uid,
+        this.newName(),
+        this.selectedColorIndex(),
+      );
+      this.router.navigate(['/list']);
+    } catch {
+      this.error.set('Erreur. Réessaie.');
+      this.loading.set(false);
+    }
   }
 }

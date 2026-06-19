@@ -1,135 +1,140 @@
-<!-- Safe-area top padding for iPhone notch -->
 <div class="min-h-screen bg-bg-app flex flex-col" style="padding-top: env(safe-area-inset-top)">
 
-  <!-- ── STEP 1 : Sélection du profil ── -->
-  @if (step() === 'select') {
-    <div class="flex-1 flex flex-col justify-center px-[26px] pb-10">
+  <!-- ── STEP 1 : Connexion Google ── -->
+  @if (step() === 'login') {
+    <div class="flex-1 flex flex-col items-center justify-center px-[28px] pb-12">
 
-      <!-- Logo + titre -->
-      <div class="text-center mb-10">
-        <div class="w-[62px] h-[62px] rounded-[20px] bg-ac mx-auto mb-[18px] flex items-center justify-center"
-             style="box-shadow: 0 14px 30px -10px rgba(26,143,92,0.6)">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3h2l.4 2M7 13h10l3.5-8H6.5"/>
-            <circle cx="9" cy="20" r="1.4"/>
-            <circle cx="17" cy="20" r="1.4"/>
-          </svg>
-        </div>
-        <div class="font-display text-[32px] font-extrabold text-text-primary tracking-[-0.02em] leading-none">
-          AvronCourses
-        </div>
-        <div class="text-[16px] text-text-secondary mt-2">Qui se connecte&nbsp;?</div>
+      <!-- Logo -->
+      <div class="w-[68px] h-[68px] rounded-[22px] bg-ac flex items-center justify-center mb-[22px]"
+           style="box-shadow: 0 14px 30px -10px rgba(26,143,92,0.6)">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3h2l.4 2M7 13h10l3.5-8H6.5"/>
+          <circle cx="9" cy="20" r="1.4"/>
+          <circle cx="17" cy="20" r="1.4"/>
+        </svg>
       </div>
 
-      <!-- Cartes profils -->
-      <div class="flex flex-col gap-[14px]">
-        @for (member of memberList; track member.id) {
-          @let color = member.colorIndex | memberColor;
-          <button
-            (click)="selectMember(member)"
-            class="flex items-center gap-4 bg-white rounded-card px-[18px] py-4 text-left w-full"
-            style="box-shadow: var(--shadow-card)">
-            <div class="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[20px] font-bold flex-none"
-                 [style.background]="color.bg"
-                 [style.color]="color.text">
-              {{ member.avatarLetter }}
-            </div>
-            <span class="flex-1 text-[19px] font-semibold text-text-primary">{{ member.name }}</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9BC9F"
-                 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 6l6 6-6 6"/>
-            </svg>
-          </button>
+      <div class="font-display text-[34px] font-extrabold text-text-primary tracking-[-0.02em] leading-none mb-[10px]">
+        AvronCourses
+      </div>
+      <div class="text-[16px] text-text-secondary text-center mb-[44px]">
+        Votre liste de courses partagée
+      </div>
+
+      <!-- Bouton Google -->
+      <button (click)="loginWithGoogle()"
+        [disabled]="loading()"
+        class="flex items-center gap-[12px] w-full max-w-[320px] bg-white rounded-[16px] px-5 py-[15px]"
+        style="box-shadow: 0 2px 12px -4px rgba(33,28,22,0.18), 0 0 0 1.5px #E3D9C6; touch-action: manipulation">
+
+        @if (loading()) {
+          <!-- Spinner -->
+          <div class="w-[22px] h-[22px] rounded-full border-[2.5px] border-text-tertiary border-t-ac animate-spin flex-none"></div>
+        } @else {
+          <!-- Logo Google -->
+          <svg width="22" height="22" viewBox="0 0 24 24" class="flex-none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
         }
 
-        <!-- Ajouter un utilisateur (non implémenté) -->
-        <div class="flex items-center gap-[14px] border-[1.5px] border-dashed border-border-dashed rounded-card px-[18px] py-4 opacity-50">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-none"
-               style="background:#EFEADC">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#A79C8A">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
-            </svg>
-          </div>
-          <span class="text-[16px] font-medium text-text-secondary">Ajouter un utilisateur</span>
-        </div>
-      </div>
+        <span class="flex-1 text-[16px] font-semibold text-text-primary">
+          Continuer avec Google
+        </span>
+      </button>
+
+      @if (error()) {
+        <div class="mt-4 text-[14px] font-medium text-red text-center">{{ error() }}</div>
+      }
+
     </div>
   }
 
-  <!-- ── STEP 2 : Date de naissance ── -->
-  @if (step() === 'dob') {
-    <div class="flex-1 flex flex-col">
+  <!-- ── STEP 2 : Création profil (nouvel utilisateur) ── -->
+  @if (step() === 'profile') {
+    <div class="flex-1 flex flex-col px-[26px]">
 
-      <!-- Header retour -->
-      <div class="flex items-center gap-[11px] px-[22px] pt-[6px] pb-[2px]">
-        <button
-          (click)="back()"
-          class="w-[38px] h-[38px] rounded-add bg-white flex items-center justify-center flex-none"
-          style="box-shadow: 0 2px 8px -3px rgba(33,28,22,0.2)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211C16"
-               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        @if (selectedMember(); as m) {
-          @let color = m.colorIndex | memberColor;
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-bold flex-none"
+      <!-- Header -->
+      <div class="pt-[8px] pb-[24px]">
+        <div class="font-display text-[28px] font-extrabold text-text-primary tracking-[-0.01em] leading-tight">
+          Bienvenue&nbsp;!
+        </div>
+        <div class="text-[15.5px] text-text-secondary mt-[6px]">
+          Crée ton profil pour rejoindre la liste.
+        </div>
+      </div>
+
+      <!-- Champ prénom -->
+      <div class="mb-[28px]">
+        <div class="text-[12.5px] font-bold tracking-[0.05em] uppercase text-text-secondary mb-[10px]">
+          Ton prénom
+        </div>
+        <input
+          [value]="newName()"
+          (input)="setName($event)"
+          type="text"
+          placeholder="Prénom…"
+          autocomplete="given-name"
+          class="w-full bg-white rounded-[14px] px-4 py-[14px] text-[17px] font-medium text-text-primary outline-none"
+          style="box-shadow: 0 4px 14px -8px rgba(33,28,22,0.18), 0 0 0 1.5px #E3D9C6" />
+      </div>
+
+      <!-- Choix de couleur -->
+      <div class="mb-[36px]">
+        <div class="text-[12.5px] font-bold tracking-[0.05em] uppercase text-text-secondary mb-[12px]">
+          Ta couleur
+        </div>
+        <div class="flex flex-wrap gap-[10px]">
+          @for (color of colorPalette; track $index) {
+            <button (click)="selectedColorIndex.set($index)"
+              class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-[15px] font-bold transition-all"
+              [style.background]="color.bg"
+              [style.color]="color.text"
+              [style.box-shadow]="selectedColorIndex() === $index ? '0 0 0 3px ' + color.text : 'none'"
+              style="touch-action: manipulation">
+              {{ newName().charAt(0).toUpperCase() || 'A' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Aperçu -->
+      @if (newName().trim()) {
+        @let color = selectedColorIndex() | memberColor;
+        <div class="flex items-center gap-3 bg-white rounded-[16px] px-4 py-[14px] mb-[28px]"
+             style="box-shadow: 0 4px 14px -8px rgba(33,28,22,0.18)">
+          <div class="w-[44px] h-[44px] rounded-full flex items-center justify-center text-[18px] font-bold flex-none"
                [style.background]="color.bg"
                [style.color]="color.text">
-            {{ m.avatarLetter }}
+            {{ newName().trim().charAt(0).toUpperCase() }}
           </div>
-          <span class="text-[17px] font-semibold text-text-primary">{{ m.name }}</span>
-        }
-      </div>
-
-      <!-- Titre -->
-      <div class="px-[26px] pt-[22px] pb-[4px]">
-        <div class="font-display text-[26px] font-extrabold text-text-primary tracking-[-0.01em] leading-tight">
-          Ta date de naissance
-        </div>
-        <div class="text-[15px] text-text-secondary mt-[6px]">Pour confirmer que c'est bien toi.</div>
-      </div>
-
-      <!-- Bandeau date sélectionnée -->
-      <div class="mx-[26px] mt-[18px] rounded-input px-4 py-4 text-center text-white font-display text-[22px] font-bold bg-ac"
-           style="box-shadow: var(--shadow-btn-accent)">
-        {{ formattedDob() }}
-      </div>
-
-      <!-- Message d'erreur -->
-      @if (authError()) {
-        <div class="mx-[26px] mt-3 text-center text-[14px] font-medium text-red">
-          Date incorrecte, réessaie.
+          <span class="text-[16px] font-semibold text-text-primary">{{ newName().trim() }}</span>
         </div>
       }
 
-      <!-- Wheel picker -->
-      <div class="flex-1 flex items-center mx-[22px] mt-[22px] relative">
-        <div class="absolute left-0 right-0 h-[46px] rounded-[12px] bg-toggle-bg pointer-events-none z-10"
-             style="top: 50%; transform: translateY(-50%)"></div>
-        <div class="flex w-full relative z-20">
-          <div class="flex-1">
-            <app-wheel-col [items]="days" [(value)]="dobDay" />
-          </div>
-          <div class="flex-[1.4]">
-            <app-wheel-col [items]="months" [(value)]="dobMonth" />
-          </div>
-          <div class="flex-1">
-            <app-wheel-col [items]="years" [(value)]="dobYear" />
-          </div>
-        </div>
+      <!-- CTA -->
+      <div style="margin-top: auto; padding-bottom: calc(30px + env(safe-area-inset-bottom))">
+        <button (click)="createProfile()"
+          [disabled]="!newName().trim() || loading()"
+          class="w-full py-[15px] rounded-[14px] text-white font-bold text-[16.5px] transition-opacity"
+          [style.background]="'#1A8F5C'"
+          [style.opacity]="!newName().trim() || loading() ? '0.45' : '1'"
+          style="box-shadow: 0 10px 24px -10px rgba(26,143,92,0.55)">
+          @if (loading()) {
+            Création…
+          } @else {
+            Créer mon profil
+          }
+        </button>
+
+        @if (error()) {
+          <div class="mt-3 text-[14px] font-medium text-red text-center">{{ error() }}</div>
+        }
       </div>
 
-      <!-- CTA Se connecter -->
-      <div class="px-[22px] pt-[14px]" style="padding-bottom: calc(30px + env(safe-area-inset-bottom))">
-        <button
-          (click)="login()"
-          class="w-full bg-ac text-white rounded-btn py-4 text-[17px] font-bold"
-          style="box-shadow: var(--shadow-btn-accent)">
-          Se connecter
-        </button>
-      </div>
     </div>
   }
 

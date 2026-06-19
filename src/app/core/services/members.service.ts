@@ -1,25 +1,44 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Signal, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  Firestore, collection, collectionData, query, orderBy,
+  doc, getDoc, setDoc,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 import { Member } from '../models';
-
-// Modifier ici les membres et leurs dates de naissance (format YYYY-MM-DD)
-// colorIndex : position dans MEMBER_COLORS (modulo 10 automatique)
-const MEMBERS_CONFIG: Member[] = [
-  { id: 'antoine', name: 'Antoine', birthDate: '1990-03-12', avatarLetter: 'A', colorIndex: 0 },
-  { id: 'marie',   name: 'Marie',   birthDate: '1992-07-24', avatarLetter: 'M', colorIndex: 1 },
-];
 
 @Injectable({ providedIn: 'root' })
 export class MembersService {
-  readonly all: Member[] = MEMBERS_CONFIG;
+  private fs = inject(Firestore);
+  private membersRef = collection(this.fs, 'members');
 
-  getById(id: string): Member | undefined {
-    return this.all.find(m => m.id === id);
+  readonly all: Signal<Member[]>;
+
+  constructor() {
+    const members$ = collectionData(
+      query(this.membersRef, orderBy('colorIndex')),
+      { idField: 'id' },
+    ) as Observable<Member[]>;
+
+    this.all = toSignal(members$, { initialValue: [] });
   }
 
-  validateBirthDate(memberId: string, day: number, month: number, year: number): boolean {
-    const member = this.getById(memberId);
-    if (!member) return false;
-    const [y, mo, d] = member.birthDate.split('-').map(Number);
-    return d === day && mo === month && y === year;
+  getById(id: string): Member | undefined {
+    return this.all().find(m => m.id === id);
+  }
+
+  async getMemberDoc(uid: string): Promise<Member | null> {
+    const snap = await getDoc(doc(this.fs, 'members', uid));
+    if (!snap.exists()) return null;
+    return { id: uid, ...(snap.data() as Omit<Member, 'id'>) };
+  }
+
+  async createMember(uid: string, name: string, colorIndex: number): Promise<void> {
+    await setDoc(doc(this.fs, 'members', uid), {
+      name: name.trim(),
+      avatarLetter: name.trim().charAt(0).toUpperCase(),
+      colorIndex,
+      createdAt: Date.now(),
+    });
   }
 }
