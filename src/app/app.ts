@@ -1,5 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 
@@ -8,7 +8,20 @@ const TAB_ROUTES = ['/list', '/history'];
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  styles: [`
+    @keyframes nav-progress {
+      0%   { width: 0%; opacity: 1; }
+      80%  { width: 85%; opacity: 1; }
+      100% { width: 95%; opacity: 1; }
+    }
+    .nav-bar { animation: nav-progress 8s cubic-bezier(0.1, 0.05, 0, 1) forwards; }
+  `],
   template: `
+    @if (navigating()) {
+      <div class="fixed top-0 left-0 right-0 z-50" style="height: 3px; background: rgba(26,143,92,0.15); padding-top: env(safe-area-inset-top)">
+        <div class="nav-bar h-full rounded-full" style="background: #1A8F5C; box-shadow: 0 0 8px rgba(26,143,92,0.5)"></div>
+      </div>
+    }
     <router-outlet />
     @if (showTabBar()) {
       <nav class="fixed bottom-0 left-0 right-0 z-30 flex bg-bg-app border-t"
@@ -40,6 +53,24 @@ const TAB_ROUTES = ['/list', '/history'];
 })
 export class App {
   private router = inject(Router);
+
+  readonly navigating = signal(false);
+
+  private readonly navEvents = toSignal(
+    this.router.events.pipe(
+      filter(e =>
+        e instanceof NavigationStart ||
+        e instanceof NavigationEnd ||
+        e instanceof NavigationCancel ||
+        e instanceof NavigationError
+      ),
+      map(e => {
+        const loading = e instanceof NavigationStart;
+        this.navigating.set(loading);
+        return e;
+      }),
+    ),
+  );
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(

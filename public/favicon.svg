@@ -1,8 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#1a8f5c"/>
-  <g transform="translate(4, 4) scale(1.0)" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M3 3h2l.4 2M7 13h10l3.5-8H6.5"/>
-    <circle cx="9" cy="20" r="1.4"/>
-    <circle cx="17" cy="20" r="1.4"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- fond jaune beurre -->
+  <rect width="32" height="32" rx="7" fill="#F5C842"/>
+  <!-- bloc de beurre -->
+  <!-- face avant -->
+  <rect x="6" y="14" width="20" height="10" rx="2" fill="#F9E07A"/>
+  <!-- face du dessus (trapèze) -->
+  <polygon points="6,14 9,9 23,9 26,14" fill="#FDE97E"/>
+  <!-- tranche coupée (face droite) -->
+  <polygon points="26,14 26,24 23,19 23,9" fill="#E8B830"/>
+  <!-- ligne de démarcation tranche -->
+  <line x1="23" y1="9" x2="23" y2="24" stroke="#D4A020" stroke-width="0.8"/>
+  <!-- brillance -->
+  <ellipse cx="13" cy="12" rx="3" ry="1.2" fill="#FFF5B0" opacity="0.6"/>
 </svg>
