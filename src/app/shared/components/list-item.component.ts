@@ -36,10 +36,15 @@ const RAYON_STYLES: Record<Rayon, { dot: string; text: string; bg: string; borde
 
       <!-- Nom + pill rayon -->
       <div class="flex-1 min-w-0">
-        <div class="text-[16.5px] font-medium"
-             [style.color]="item().checked ? '#B3AB9A' : '#211C16'"
-             [style.text-decoration]="item().checked ? 'line-through' : 'none'">
-          {{ item().name }}
+        <div class="flex items-center gap-[7px]">
+          @if (showRayonDot()) {
+            <span class="w-[7px] h-[7px] rounded-full flex-none" [style.background]="rayonStyle().dot"></span>
+          }
+          <div class="text-[16.5px] font-medium truncate"
+               [style.color]="item().checked ? '#B3AB9A' : '#211C16'"
+               [style.text-decoration]="item().checked ? 'line-through' : 'none'">
+            {{ item().name }}
+          </div>
         </div>
         @if (showRayon()) {
           <span class="inline-flex items-center gap-[6px] rounded-full text-[11.5px] font-semibold px-[9px] py-[2px] mt-[5px]"
@@ -67,10 +72,11 @@ const RAYON_STYLES: Record<Rayon, { dot: string; text: string; bg: string; borde
   `,
 })
 export class ListItemComponent {
-  item      = input.required<ListItem>();
-  last      = input(false);
-  showRayon = input(false);
-  toggle    = output<string>();
+  item        = input.required<ListItem>();
+  last        = input(false);
+  showRayon   = input(false);
+  showRayonDot = input(false);
+  toggle      = output<string>();
 
   members = inject(MembersService);
 

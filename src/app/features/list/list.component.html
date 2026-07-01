@@ -57,7 +57,7 @@
     @if (list.viewMode() === 'flat') {
       <div class="bg-white rounded-[22px] overflow-hidden" style="box-shadow: var(--shadow-card)">
         @for (item of list.items(); track item.id; let last = $last) {
-          <ng-container *ngTemplateOutlet="swipeItem; context: { $implicit: item, last: last, showRayon: false }"></ng-container>
+          <ng-container *ngTemplateOutlet="swipeItem; context: { $implicit: item, last: last, showRayon: false, showRayonDot: true }"></ng-container>
         }
       </div>
     }
@@ -79,7 +79,7 @@
                  [style.border]="group.rayon === 'inconnue' ? '1.5px dashed #DCD2BD' : 'none'"
                  style="box-shadow: var(--shadow-card)">
               @for (item of group.items; track item.id; let last = $last) {
-                <ng-container *ngTemplateOutlet="swipeItem; context: { $implicit: item, last: last, showRayon: true }"></ng-container>
+                <ng-container *ngTemplateOutlet="swipeItem; context: { $implicit: item, last: last, showRayon: false, showRayonDot: false }"></ng-container>
               }
             </div>
           </div>
@@ -125,7 +125,7 @@
 </div>
 
 <!-- ── Template swipeable item ── -->
-<ng-template #swipeItem let-item let-last="last" let-showRayon="showRayon">
+<ng-template #swipeItem let-item let-last="last" let-showRayon="showRayon" let-showRayonDot="showRayonDot">
   <div class="relative overflow-hidden"
        [class.border-b]="!last"
        style="border-color: #F1EADC">
@@ -179,6 +179,7 @@
         [item]="item"
         [last]="true"
         [showRayon]="showRayon"
+        [showRayonDot]="showRayonDot"
         (toggle)="list.toggle(item.id)" />
     </div>
   </div>

@@ -65,7 +65,7 @@ export class AddItemComponent implements AfterViewInit {
     const member = this.session.currentMember();
     if (!member) return;
     this.listService.add(product.name, product.rayon, member.id);
-    this.router.navigate(['/list']);
+    this.resetAndRefocus();
   }
 
   addNewItem() {
@@ -74,7 +74,13 @@ export class AddItemComponent implements AfterViewInit {
     const member = this.session.currentMember();
     if (!member) return;
     this.listService.add(name, this.selectedRayon(), member.id);
-    this.router.navigate(['/list']);
+    this.resetAndRefocus();
+  }
+
+  private resetAndRefocus() {
+    this.query.set('');
+    this.selectedRayon.set('inconnue');
+    setTimeout(() => this.inputRef()?.nativeElement.focus());
   }
 
   cancel() {
